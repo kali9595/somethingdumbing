@@ -55,5 +55,6 @@ end
 
 if not findTargetBases() then
     print("No target brainrots found in this server, hopping...")
+    task.wait(3)
     teleportToRandomServer()
 end
