@@ -38,7 +38,30 @@ end
 
 local targetBrainRots = {
     ["Garama and Madundung"] = true,
-    ["La Grande Combinasion"] = true
+    ["La Grande Combinasion"] = true,
+    ["La Vacca Staturno Saturnita"] = true,
+    ["Chimpanzini Spiderini"] = true,
+    ["Los Tralaleritos"] = true,
+    ["Las Tralaleritas"] = true,
+    ["Graipuss Medussi"] = true,
+    ["Nuclearo Dinossauro"] = true,
+    ["Tortuginni Dragonfruitini"] = true,
+    ["Pot Hotspot"] = true,
+    ["Las Vaquitas Saturnitas"] = true,
+    ["Chicleteira Bicicleteira"] = true,
+    ["Agarrini la Palini"] = true,
+    ["Dragon Cannelloni"] = true,
+    ["Los Combinasionas"] = true,
+    ["Karkerkar Kurkur"] = true,
+    ["Los Hotspotsitos"] = true,
+    ["Esok Sekolah"] = true,
+    ["Los Matteos"] = true,
+    ["Dul Dul Dul"] = true,
+    ["Blackhole Goat"] = true,
+    ["Nooo My Hotspot"] = true,
+    ["Sammyini Spyderini"] = true,
+    ["La Supreme Combinasion"] = true,
+    ["Ketupat Kepat"] = true
 }
 
 local function findTargetBases()
