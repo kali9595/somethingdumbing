@@ -13,13 +13,13 @@ local function getServerList()
             if ok and body and body.data then
                 return body.data
             else
-                warn("Failed to decode server list, retrying in 3 seconds...")
+                warn("Failed to decode server list, retrying in 10 seconds...")
             end
         else
-            warn("Failed to get server list, probably rate-limited. Retrying in 3 seconds...")
+            warn("Failed to get server list, probably rate-limited. Retrying in 10 seconds...")
         end
 
-        task.wait(3) -- wait before retrying
+        task.wait(10)
     end
 end
 
@@ -44,8 +44,8 @@ local function teleportToRandomServer()
             queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
             break
         else
-            warn("No available servers found, retrying in 3 seconds...")
-            task.wait(3)
+            warn("No available servers found, retrying in 10 seconds...")
+            task.wait(10)
         end
     end
 end
@@ -94,7 +94,7 @@ local function findTargetBases()
 end
 
 while not findTargetBases() do
-    print("No target brainrots found in this server, hopping...")
-    task.wait(2)
+    print("No target brainrots found in this server, hopping in 10 seconds...")
+    task.wait(10)
     teleportToRandomServer()
 end
