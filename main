@@ -3,6 +3,15 @@ local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 
+local teleportCheck = false
+
+game.Players.LocalPlayer.OnTeleport:Connect(function(State)
+if not teleportCheck then
+teleportCheck = true
+queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
+end
+end)
+
 local function getServerList()
     while true do
         local success, req = pcall(function()
@@ -76,7 +85,7 @@ local targetBrainRots = {
     ["Ketupat Kepat"] = true
 }
 
-local function findTargetBases()
+--[[local function findTargetBases()
     local found = false
     for _, v in pairs(workspace.Plots:GetDescendants()) do
         if v:IsA("TextLabel") and targetBrainRots[v.Text] then
@@ -86,6 +95,33 @@ local function findTargetBases()
             StarterGui:SetCore("SendNotification", {
                 Title = "Brainrot Detected",
                 Text = brainrot .. " is in this server. Serverhop?",
+                Duration = 10,
+                Button1 = "Yes",
+                Button2 = "No",
+                Callback = function(response)
+                    if response == "Yes" then
+                        teleportToRandomServer()
+                    end
+                end
+            })
+        end
+    end
+    return found
+end]]
+
+local function findTargetBases()
+    local found = false
+    for _, v in pairs(workspace.Plots:GetDescendants()) do
+        if v:IsA("TextLabel") and targetBrainRots[v.Text] then
+            local targetBase = v.Parent.Parent.Parent.Parent.Parent.Parent.Parent
+            --print(targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a " .. v.Text)
+            setclipboard(game.JobId)
+            print("Server JobID has been copied to clipboard - " .. game.JobId)
+            found = true
+
+            StarterGui:SetCore("SendNotification", {
+                Title = "Brainrot Detected",
+                Text = targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a "..v.Text..", Serverhop?",
                 Duration = 10,
                 Button1 = "Yes",
                 Button2 = "No",
@@ -109,12 +145,3 @@ while not findTargetBases() do
     task.wait(10)
     teleportToRandomServer()
 end
-
-local teleportCheck = false
-
-game.Players.LocalPlayer.OnTeleport:Connect(function(State)
-if not teleportCheck then
-teleportCheck = true
-queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
-end
-end)
