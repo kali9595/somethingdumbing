@@ -1,0 +1,59 @@
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+local function teleportToRandomServer()
+    local servers = {}
+    local success, req = pcall(function()
+        return game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+    end)
+
+    if not success then
+        warn("Failed to get server list")
+        return
+    end
+
+    local body = HttpService:JSONDecode(req)
+    if body and body.data then
+        for _, v in next, body.data do
+            if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) 
+               and v.playing < v.maxPlayers and v.id ~= game.JobId then
+                table.insert(servers, v.id)
+            end
+        end
+    end
+
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(
+            game.PlaceId, 
+            servers[math.random(1, #servers)], 
+            Players.LocalPlayer
+        )
+    else
+        warn("Couldn't find a server")
+    end
+
+    queue_on_teleport("")
+end
+
+local targetBrainRots = {
+    ["Garama and Madundung"] = true,
+    ["La Grande Combinasion"] = true
+}
+
+local function findTargetBases()
+    local found = false
+    for _, v in pairs(workspace.Plots:GetDescendants()) do
+        if v:IsA("TextLabel") and targetBrainRots[v.Text] then
+            local targetBase = v.Parent.Parent.Parent.Parent.Parent.Parent.Parent
+            print(targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a " .. v.Text)
+            found = true
+        end
+    end
+    return found
+end
+
+if not findTargetBases() then
+    print("No target brainrots found in this server, hopping...")
+    teleportToRandomServer()
+end
