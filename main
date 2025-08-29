@@ -51,8 +51,7 @@ local function teleportToRandomServer()
 end
 
 local targetBrainRots = {
-    ["Garama"] = true,
-    ["Madundung"] = true,
+    ["Garama and Madundung"] = true,
     ["La Grande Combinasion"] = true,
     ["La Vacca Staturno Saturnita"] = true,
     ["Chimpanzini Spiderini"] = true,
