@@ -1,5 +1,4 @@
-game:GetService("StarterGui"):SetCore("DevConsoleVisible", true)
-
+local StarterGui = game:GetService("StarterGui")
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -14,11 +13,7 @@ local function getServerList()
             local ok, body = pcall(HttpService.JSONDecode, HttpService, req)
             if ok and body and body.data then
                 return body.data
-            else
-                warn("Failed to decode server list, retrying in 10 seconds...")
             end
-        else
-            warn("Failed to get server list, probably rate-limited. Retrying in 10 seconds...")
         end
 
         task.wait(10)
@@ -26,29 +21,31 @@ local function getServerList()
 end
 
 local function teleportToRandomServer()
-    while true do
-        local servers = {}
-        local data = getServerList() -- safe fetch
+    local data = getServerList()
+    local servers = {}
 
-        for _, v in next, data do
-            if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) 
-               and v.playing < v.maxPlayers and v.id ~= game.JobId then
-                table.insert(servers, v.id)
-            end
+    for _, v in next, data do
+        if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) 
+           and v.playing < v.maxPlayers and v.id ~= game.JobId then
+            table.insert(servers, v.id)
         end
+    end
 
-        if #servers > 0 then
-            TeleportService:TeleportToPlaceInstance(
-                game.PlaceId, 
-                servers[math.random(1, #servers)], 
-                Players.LocalPlayer
-            )
-            queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
-            break
-        else
-            warn("No available servers found, retrying in 10 seconds...")
-            task.wait(10)
-        end
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(
+            game.PlaceId, 
+            servers[math.random(1, #servers)], 
+            Players.LocalPlayer
+        )
+        queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
+    else
+        StarterGui:SetCore("SendNotification", {
+            Title = "Server Hopper",
+            Text = "No available servers found, retrying soon...",
+            Duration = 5
+        })
+        task.wait(10)
+        teleportToRandomServer()
     end
 end
 
@@ -84,18 +81,32 @@ local function findTargetBases()
     local found = false
     for _, v in pairs(workspace.Plots:GetDescendants()) do
         if v:IsA("TextLabel") and targetBrainRots[v.Text] then
-            local targetBase = v.Parent.Parent.Parent.Parent.Parent.Parent.Parent
-            print(targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a " .. v.Text)
-            setclipboard(game.JobId)
-            print("Server JobID has been copied to clipboard - " .. game.JobId)
+            local brainrot = v.Text
             found = true
+
+            StarterGui:SetCore("SendNotification", {
+                Title = "Brainrot Detected",
+                Text = brainrot .. " is in this server. Serverhop?",
+                Duration = 10,
+                Button1 = "Yes",
+                Button2 = "No",
+                Callback = function(response)
+                    if response == "Yes" then
+                        teleportToRandomServer()
+                    end
+                end
+            })
         end
     end
     return found
 end
 
 while not findTargetBases() do
-    print("No target brainrots found in this server, hopping in 10 seconds...")
+    StarterGui:SetCore("SendNotification", {
+        Title = "Server Scanner",
+        Text = "No target brainrots found, hopping soon...",
+        Duration = 5
+    })
     task.wait(10)
     teleportToRandomServer()
 end
