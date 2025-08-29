@@ -2,42 +2,57 @@ local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 
-local function teleportToRandomServer()
-    local servers = {}
-    local success, req = pcall(function()
-        return game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
-    end)
+local function getServerList()
+    while true do
+        local success, req = pcall(function()
+            return game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+        end)
 
-    if not success then
-        warn("Failed to get server list")
-        return
+        if success and req then
+            local ok, body = pcall(HttpService.JSONDecode, HttpService, req)
+            if ok and body and body.data then
+                return body.data
+            else
+                warn("Failed to decode server list, retrying in 3 seconds...")
+            end
+        else
+            warn("Failed to get server list, probably rate-limited. Retrying in 3 seconds...")
+        end
+
+        task.wait(3) -- wait before retrying
     end
+end
 
-    local body = HttpService:JSONDecode(req)
-    if body and body.data then
-        for _, v in next, body.data do
+local function teleportToRandomServer()
+    while true do
+        local servers = {}
+        local data = getServerList() -- safe fetch
+
+        for _, v in next, data do
             if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) 
                and v.playing < v.maxPlayers and v.id ~= game.JobId then
                 table.insert(servers, v.id)
             end
         end
-    end
 
-    if #servers > 0 then
-        TeleportService:TeleportToPlaceInstance(
-            game.PlaceId, 
-            servers[math.random(1, #servers)], 
-            Players.LocalPlayer
-        )
-    else
-        warn("Couldn't find a server")
+        if #servers > 0 then
+            TeleportService:TeleportToPlaceInstance(
+                game.PlaceId, 
+                servers[math.random(1, #servers)], 
+                Players.LocalPlayer
+            )
+            queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
+            break
+        else
+            warn("No available servers found, retrying in 3 seconds...")
+            task.wait(3)
+        end
     end
-
-    queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
 end
 
 local targetBrainRots = {
-    ["Garama and Madundung"] = true,
+    ["Garama"] = true,
+    ["Madundung"] = true,
     ["La Grande Combinasion"] = true,
     ["La Vacca Staturno Saturnita"] = true,
     ["Chimpanzini Spiderini"] = true,
@@ -70,14 +85,16 @@ local function findTargetBases()
         if v:IsA("TextLabel") and targetBrainRots[v.Text] then
             local targetBase = v.Parent.Parent.Parent.Parent.Parent.Parent.Parent
             print(targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a " .. v.Text)
+            setclipboard(game.JobId)
+            print("Server JobID has been copied to clipboard - " .. game.JobId)
             found = true
         end
     end
     return found
 end
 
-if not findTargetBases() then
+while not findTargetBases() do
     print("No target brainrots found in this server, hopping...")
-    task.wait(3)
+    task.wait(2)
     teleportToRandomServer()
 end
