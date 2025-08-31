@@ -1,0 +1,183 @@
+local Decimals = 4
+local Clock = os.clock()
+local ValueText = "Value Is Now :"
+
+-- UI LIBRARY
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Roblox-UI-Libs/main/1%20Tokyo%20Lib%20(FIXED)/Tokyo%20Lib%20Source.lua"))({
+    cheatname = "Brainrot Finder", 
+    gamename = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name, 
+})
+library:init()
+
+local Window1  = library.NewWindow({
+    title = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name.." | Brainrot Finder", 
+    size = UDim2.new(0, 510, 0.6, 6)
+})
+
+local Tab1 = Window1:AddTab("Main")
+local SettingsTab = library:CreateSettingsTab(Window1)
+local Section1 = Tab1:AddSection("Brainrot Tools", 1)
+
+--=== ORIGINAL SCRIPT VARIABLES ===--
+local StarterGui = game:GetService("StarterGui")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+local teleportCheck = false
+game.Players.LocalPlayer.OnTeleport:Connect(function(State)
+    if not teleportCheck then
+        teleportCheck = true
+        queue_on_teleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/kali9595/somethingdumbing/refs/heads/main/main'))()")
+    end
+end)
+
+local function getServerList()
+    while true do
+        local success, req = pcall(function()
+            return game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+        end)
+
+        if success and req then
+            local ok, body = pcall(HttpService.JSONDecode, HttpService, req)
+            if ok and body and body.data then
+                return body.data
+            end
+        end
+        task.wait(10)
+    end
+end
+
+local function teleportToRandomServer()
+    local data = getServerList()
+    local servers = {}
+
+    for _, v in next, data do
+        if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) 
+           and v.playing < v.maxPlayers and v.id ~= game.JobId then
+            table.insert(servers, v.id)
+        end
+    end
+
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(
+            game.PlaceId, 
+            servers[math.random(1, #servers)], 
+            Players.LocalPlayer
+        )
+    else
+        library:SendNotification("No available servers found, retrying soon...", 5)
+        task.wait(10)
+        teleportToRandomServer()
+    end
+end
+
+-- BRAINROT LIST
+local targetBrainRots = {
+    ["Garama and Madundung"] = true,
+    ["La Grande Combinasion"] = true,
+    ["La Vacca Staturno Saturnita"] = true,
+    ["Chimpanzini Spiderini"] = true,
+    ["Los Tralaleritos"] = true,
+    ["Las Tralaleritas"] = true,
+    ["Graipuss Medussi"] = true,
+    ["Nuclearo Dinossauro"] = true,
+    ["Tortuginni Dragonfruitini"] = true,
+    ["Pot Hotspot"] = true,
+    ["Las Vaquitas Saturnitas"] = true,
+    ["Chicleteira Bicicleteira"] = true,
+    ["Agarrini la Palini"] = true,
+    ["Dragon Cannelloni"] = true,
+    ["Los Combinasionas"] = true,
+    ["Karkerkar Kurkur"] = true,
+    ["Los Hotspotsitos"] = true,
+    ["Esok Sekolah"] = true,
+    ["Los Matteos"] = true,
+    ["Dul Dul Dul"] = true,
+    ["Blackhole Goat"] = true,
+    ["Nooo My Hotspot"] = true,
+    ["Sammyini Spyderini"] = true,
+    ["La Supreme Combinasion"] = true,
+    ["Ketupat Kepat"] = true
+}
+
+-- TRACK TOGGLES
+local brainrotToggles = {}
+
+--=== FIND TARGET BASES FUNCTION ===--
+local function findTargetBases()
+    local found = false
+    for _, v in pairs(workspace.Plots:GetDescendants()) do
+        if v:IsA("TextLabel") and brainrotToggles[v.Text] and brainrotToggles[v.Text].state then
+            local targetBase = v.Parent.Parent.Parent.Parent.Parent.Parent.Parent
+            setclipboard(game.JobId)
+            print("Server JobID copied to clipboard - " .. game.JobId)
+            found = true
+
+            library:SendNotification(targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a "..v.Text..", Serverhop?", 10)
+            StarterGui:SetCore("SendNotification", {
+                Title = "Brainrot Detected",
+                Text = targetBase.PlotSign.SurfaceGui.Frame.TextLabel.Text .. " has a "..v.Text..", Serverhop?",
+                Duration = 10,
+                Button1 = "Yes",
+                Button2 = "No",
+                Callback = function(response)
+                    if response == "Yes" then
+                        teleportToRandomServer()
+                    end
+                end
+            })
+        end
+    end
+    return found
+end
+
+--=== UI HOOKS ===--
+
+-- Button to manually server hop
+Section1:AddButton({
+    text = "Hop to Random Server",
+    confirm = true,
+    callback = function()
+        teleportToRandomServer()
+    end
+})
+
+-- Toggle to auto-scan + hop
+local autoScan = false
+Section1:AddToggle({
+    text = "Auto Scan & Hop",
+    state = false,
+    callback = function(v)
+        autoScan = v
+        if autoScan then
+            task.spawn(function()
+                while autoScan do
+                    if not findTargetBases() then
+                        library:SendNotification("No target brainrots found, hopping soon...", 5)
+                        task.wait(10)
+                        teleportToRandomServer()
+                    end
+                    task.wait(5)
+                end
+            end)
+        end
+    end
+})
+
+--=== DYNAMIC TOGGLES FOR EACH BRAINROT ===--
+local Section2 = Tab1:AddSection("Select Targets", 2)
+for name, _ in pairs(targetBrainRots) do
+    brainrotToggles[name] = Section2:AddToggle({
+        text = name,
+        state = true,
+        callback = function(v)
+            brainrotToggles[name].state = v
+            print(name .. " scanning: " .. tostring(v))
+        end
+    })
+end
+
+-- Load notification
+local Time = (string.format("%."..tostring(Decimals).."f", os.clock() - Clock))
+library:SendNotification(("UI & Script Loaded In "..tostring(Time).."s"), 6)
